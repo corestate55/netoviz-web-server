@@ -2,8 +2,8 @@ require('dotenv').config()
 
 module.exports = {
   server: {
-    host: process.env.NETOVIZ_BIND_ADDR,
-    port: process.env.PORT || process.env.NETOVIZ_HTTP_PORT
+    host: '0.0.0.0',
+    port: process.env.PORT || process.env.NETOVIZ_WEB_PORT
   },
   mode: 'universal',
   /*
@@ -34,7 +34,7 @@ module.exports = {
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: [{ src: '~/lib/grpc-client/index.js', mode: 'client' }],
+  plugins: [],
   /*
    ** Nuxt.js dev-modules
    */
