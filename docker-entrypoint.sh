@@ -1,10 +1,10 @@
 #!/bin/sh
 set -e
 
-NV_DIR=/home/netoviz-web-server
-ENV_FILE=${NV_DIR}/.env
-env | grep NETOVIZ > ${ENV_FILE}
-cat ${ENV_FILE}
+# update environment when runtime.
+cd /home/netoviz-web-server
+env | grep NETOVIZ > .env
+cat .env
 
 if [ "${1#-}" != "${1}" ] || [ -z "$(command -v "${1}")" ]; then
   set -- node "$@"
