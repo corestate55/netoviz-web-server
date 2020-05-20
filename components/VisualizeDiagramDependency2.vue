@@ -5,11 +5,8 @@
         <div>
           visualize diagram dependency2
           <ul>
-            <li>model: {{ modelFile }}</li>
-            <li>
-              Alert Row:
-              {{ currentAlertRow ? currentAlertRow.id : 'NOT selected' }}
-            </li>
+            <li>Model File: {{ modelFile }}</li>
+            <li>Alert Host: {{ alertHost }}</li>
           </ul>
         </div>
       </v-col>
@@ -24,23 +21,35 @@
 </template>
 
 <script>
+import AppAPICommon from './AppAPICommon'
 import VisualizeDiagramCommon from './VisualizeDiagramCommon'
 import Dependency2DiagramVisualizer from '~/lib/diagram/dependency2/visualizer'
 import '~/lib/style/dependency.scss'
 
 export default {
-  mixins: [VisualizeDiagramCommon],
-  data: () => ({ debug: false }),
+  mixins: [AppAPICommon, VisualizeDiagramCommon],
+  data: () => ({
+    visualizerName: 'dependency2',
+    debug: false
+  }),
   methods: {
-    makeVisualizer(width, height) {
-      return new Dependency2DiagramVisualizer(width, height)
+    makeVisualizer() {
+      return new Dependency2DiagramVisualizer(
+        this.apiParam,
+        this.svgWidth,
+        this.svgHeight
+      )
     },
     clearAllHighlight() {
       this.visualizer.clearDependencyLines()
       this.visualizer.clearHighlight()
     },
     drawRfcTopologyData() {
-      this.visualizer.drawRfcTopologyData(this.modelFile, this.currentAlertRow)
+      const params = {
+        modelFile: this.modelFile,
+        alertHost: this.alertHost
+      }
+      this.visualizer.drawRfcTopologyData(params)
     }
   }
 }

@@ -5,12 +5,10 @@
         <div>
           visualize diagram nested
           <ul>
-            <li>Nested model: {{ modelFile }}</li>
-            <li>
-              Alert Row:
-              {{ currentAlertRow ? currentAlertRow.id : 'NOT selected' }}
-            </li>
-            <li>Reverse? : {{ reverse }} Auto Fitting? : {{ autoFitting }}</li>
+            <li>Model File: {{ modelFile }}</li>
+            <li>Alert Host: {{ alertHost }}</li>
+            <li>Reverse? : {{ reverse }}</li>
+            <li>Auto Fitting? : {{ autoFitting }}</li>
           </ul>
         </div>
       </v-col>
@@ -51,18 +49,20 @@
 
 <script>
 import { mapMutations } from 'vuex'
+import AppAPICommon from './AppAPICommon'
 import VisualizeDiagramCommon from './VisualizeDiagramCommon'
 import NestedDiagramVisualizer from '~/lib/diagram/nested/visualizer'
 import '~/lib/style/nested.scss'
 
 export default {
-  mixins: [VisualizeDiagramCommon],
+  mixins: [AppAPICommon, VisualizeDiagramCommon],
   data() {
     return {
       reverse: true,
       autoFitting: false,
       aggregation: true,
       depth: 1,
+      visualizerName: 'nested',
       debug: false
     }
   },
@@ -71,7 +71,9 @@ export default {
       this.drawRfcTopologyData()
     },
     autoFitting() {
-      this.drawRfcTopologyData()
+      this.autoFitting
+        ? this.visualizer.fitGrid() // turn on (adjust grid position in frontend)
+        : this.drawRfcTopologyData() // turn off (redraw)
     },
     aggregation() {
       this.drawRfcTopologyData()
@@ -79,8 +81,12 @@ export default {
   },
   methods: {
     ...mapMutations('alert', ['setAlertHost']),
-    makeVisualizer(width, height) {
-      return new NestedDiagramVisualizer(width, height)
+    makeVisualizer() {
+      return new NestedDiagramVisualizer(
+        this.apiParam,
+        this.svgWidth,
+        this.svgHeight
+      )
     },
     clearAllHighlight() {
       this.visualizer.clearAllAlertHighlight()
@@ -90,26 +96,21 @@ export default {
     },
     drawRfcTopologyData() {
       const params = {
+        modelFile: this.modelFile,
+        alertHost: this.alertHost,
         reverse: this.reverse,
         depth: this.depth,
-        layer: this.currentAlertRow?.layer, // from AlertHost Input (layer__node)
         aggregate: this.aggregation,
         fitGrid: this.autoFitting
       }
-      this.visualizer.drawRfcTopologyData(
-        this.modelFile,
-        this.currentAlertRow,
-        params
-      )
+      this.visualizer.drawRfcTopologyData(params)
     },
     saveLayout() {
-      this.visualizer.saveLayout(this.modelFile, this.reverse, this.depth)
-    },
-    nodeClickCallback(nodeData) {
-      // re-construct path with layer-name and name attribute,
-      // because path has deep-copy identifier (::N).
-      const path = [nodeData.path.split('__').shift(), nodeData.name].join('__')
-      this.setAlertHost(path)
+      const params = {
+        modelFile: this.modelFile,
+        reverse: this.reverse
+      }
+      this.visualizer.saveLayout(params)
     }
   }
 }

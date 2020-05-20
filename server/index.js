@@ -41,4 +41,5 @@ async function startHTTPServer() {
 }
 
 // Run server.
+console.log('[Server] NETOVIZ_API: ', process.env.NETOVIZ_API)
 startHTTPServer()

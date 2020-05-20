@@ -1,12 +1,8 @@
 <template>
-  <div id="common-template">
-    <!-- Dummy: cannot crete <template> less single file component. -->
-  </div>
+  <div class="dummy"></div>
 </template>
 
 <script>
-import { mapState } from 'vuex'
-
 export default {
   props: {
     modelFile: {
@@ -18,11 +14,19 @@ export default {
   data() {
     return {
       visualizer: null,
-      unwatchCurrentAlertRow: null
+      visualizerName: 'base',
+      unwatchAlertHost: null
     }
   },
   computed: {
-    ...mapState('alert', ['currentAlertRow']),
+    alertHost: {
+      get() {
+        return this.$store.state.alert.alertHost
+      },
+      set(value) {
+        this.$store.commit('alert/setAlertHost', value)
+      }
+    },
     isLarge() {
       return !!['lg', 'xl'].find(d => d === this.$vuetify.breakpoint.name)
     },
@@ -55,43 +59,45 @@ export default {
     // Lifecycle for diagram visualizer:
     // merged at including component X.
     // called here before X.mounted()
-    console.log('[viz] mounted')
-    this.unwatchCurrentAlertRow = this.$store.watch(
-      state => state.alert.currentAlertRow,
-      this.watchCurrentAlertRow
-    )
+    console.log(`[viz/${this.visualizerName}] mounted`)
     this.beforeMakeVisualizer() // hook (to ready make visualizer)
-    this.visualizer = this.makeVisualizer(this.svgWidth, this.svgHeight)
+    this.visualizer = this.makeVisualizer()
     this.afterMakeVisualizer() // hook (to initialize visualizer)
     this.drawRfcTopologyData() // generate initial diagram
+
+    // set watcher for store change
+    this.unwatchalertHost = this.$store.watch(
+      state => state.alert.alertHost,
+      this.watchAlertHost
+    )
   },
   beforeDestroy() {
+    // clear store watcher
+    this.unwatchalertHost && this.unwatchalertHost()
+
     // Lifecycle for diagram visualizer:
     // merged at including component X.
     // called here before X.beforeDestroy()
-    console.log('[viz] before destroy')
+    console.log(`[viz/${this.visualizerName}] before destroy`)
     this.beforeDeleteVisualizer() // hook
     delete this.visualizer
     this.afterDeleteVisualizer() // hook
-    this.unwatchCurrentAlertRow()
   },
   methods: {
     // Common methods (template):
     // Methods are overwritten at including (mix-in) component
-    makeVisualizer(width, height) {
+    makeVisualizer() {
       // return diagram visualizer as `this.visualizer`
       console.error('[viz] makeVisualizer must be overwritten.')
     },
-    watchCurrentAlertRow(newRow, oldRow) {
-      // callback function when currentAlertRow changed.
-      // redraw (drawRfcTopologyData)
+    watchAlertHost(newValue, oldValue) {
       this.drawRfcTopologyData()
-      this.highlightByAlert(newRow)
+      this.highlightByAlert(newValue)
     },
     watchModelFile(newModelFile, oldModelFile) {
       // callback function when modelFile changed.
       console.log(
-        `[viz] modelFile changed from ${oldModelFile} to ${newModelFile}`
+        `[viz/${this.visualizerName}] modelFile changed from ${oldModelFile} to ${newModelFile}`
       )
       this.clearAllHighlight()
       this.drawRfcTopologyData()
@@ -116,9 +122,9 @@ export default {
       // function to generate diagram using visualizer.
       console.error('[viz] drawRfcTopologyData must be overwrite.')
     },
-    highlightByAlert(alertRow) {
-      if (alertRow) {
-        this.visualizer.highlightByAlert(alertRow)
+    highlightByAlert(alertHost) {
+      if (alertHost) {
+        this.visualizer.highlightByAlert(alertHost)
       } else {
         this.clearAllHighlight()
       }
@@ -126,6 +132,13 @@ export default {
     resizeSVG() {
       this.visualizer &&
         this.visualizer.resizeRootSVG(this.svgWidth, this.svgHeight)
+    },
+    nodeClickCallback(nodeData) {
+      // For nested and distance diagram:
+      // re-construct path with layer-name and name attribute,
+      // because path has deep-copy identifier (::N).
+      const paths = [nodeData.path.split('__').shift(), nodeData.name]
+      this.alertHost = paths.join('__')
     }
   }
 }

@@ -5,11 +5,8 @@
         <div>
           visualize distance
           <ul>
-            <li>Distance model: {{ modelFile }}</li>
-            <li>
-              Alert Row:
-              {{ currentAlertRow ? currentAlertRow.id : 'NOT selected' }}
-            </li>
+            <li>Model File: {{ modelFile }}</li>
+            <li>Alert Host: {{ alertHost }}</li>
           </ul>
         </div>
       </v-col>
@@ -26,16 +23,24 @@
 <script>
 import { mapMutations } from 'vuex'
 import DistanceDiagramVisualizer from '../lib/diagram/distance/visualizer'
+import AppAPICommon from './AppAPICommon'
 import VisualizeDiagramCommon from './VisualizeDiagramCommon'
 import '~/lib/style/distance.scss'
 
 export default {
-  mixins: [VisualizeDiagramCommon],
-  data: () => ({ debug: false }),
+  mixins: [AppAPICommon, VisualizeDiagramCommon],
+  data: () => ({
+    visualizerName: 'distance',
+    debug: false
+  }),
   methods: {
     ...mapMutations('alert', ['setAlertHost']),
-    makeVisualizer(width, height) {
-      return new DistanceDiagramVisualizer(width, height)
+    makeVisualizer() {
+      return new DistanceDiagramVisualizer(
+        this.apiParam,
+        this.svgWidth,
+        this.svgHeight
+      )
     },
     clearAllHighlight() {
       this.visualizer.clearHighlight()
@@ -45,19 +50,10 @@ export default {
     },
     drawRfcTopologyData() {
       const params = {
-        layer: this.currentAlertRow?.layer // from AlertHost Input (layer__node)
+        modelFile: this.modelFile,
+        alertHost: this.alertHost
       }
-      this.visualizer.drawRfcTopologyData(
-        this.modelFile,
-        this.currentAlertRow,
-        params
-      )
-    },
-    nodeClickCallback(nodeData) {
-      // re-construct path with layer-name and name attribute,
-      // because path has deep-copy identifier (::N).
-      const path = [nodeData.path.split('__').shift(), nodeData.name].join('__')
-      this.setAlertHost(path)
+      this.visualizer.drawRfcTopologyData(params)
     }
   }
 }

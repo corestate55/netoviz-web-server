@@ -5,9 +5,9 @@
         <div>
           visualize force-simulation diagram.
           <ul>
-            <li>Topology model: {{ modelFile }}</li>
-            <li>Whole layers: {{ wholeLayers }}</li>
-            <li>current Alert Row: {{ currentAlertRow }}</li>
+            <li>Model File: {{ modelFile }}</li>
+            <li>Whole Layers: {{ wholeLayers }}</li>
+            <li>Alert Host: {{ alertHost }}</li>
           </ul>
         </div>
       </v-col>
@@ -28,6 +28,7 @@
 </template>
 
 <script>
+import AppAPICommon from './AppAPICommon'
 import VisualizeDiagramCommon from './VisualizeDiagramCommon'
 import VisualizeDiagramSelectLayer from './VisualizeDiagramSelectLayer'
 import ForceSimulationDiagramVisualizer from '~/lib/diagram/force-simulation/visualizer'
@@ -37,14 +38,15 @@ export default {
   components: {
     VisualizeDiagramSelectLayer
   },
-  mixins: [VisualizeDiagramCommon],
+  mixins: [AppAPICommon, VisualizeDiagramCommon],
   data: () => ({
     wholeLayers: [],
+    visualizerName: 'forceSimulation',
     debug: false
   }),
   methods: {
-    makeVisualizer(width, height) {
-      return new ForceSimulationDiagramVisualizer()
+    makeVisualizer() {
+      return new ForceSimulationDiagramVisualizer(this.apiParam)
     },
     afterMakeVisualizer() {
       const getLayerNames = graphs => {
@@ -58,16 +60,20 @@ export default {
       }
       this.visualizer.setUISideDrawRfcTopologyHook(getLayerNames)
     },
-    watchCurrentAlertRow(newRow, oldRow) {
+    watchAlertHost(newValue, oldValue) {
       // only change highlight.
       // no need to redraw because force-simulation diagrams draws all elements at first.
-      this.highlightByAlert(newRow)
+      this.highlightByAlert(newValue)
     },
     clearAllHighlight() {
       this.visualizer.clearAllHighlight()
     },
     drawRfcTopologyData() {
-      this.visualizer.drawRfcTopologyData(this.modelFile, this.currentAlertRow)
+      const params = {
+        modelFile: this.modelFile,
+        alertHost: this.alertHost
+      }
+      this.visualizer.drawRfcTopologyData(params)
     }
   }
 }

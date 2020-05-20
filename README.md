@@ -15,12 +15,15 @@ npm run dev
 
 ## build docker image
 ```
-docker build -t netoviz/web-server .
+docker build -t netoviz/web-vue .
+```
+or
+```
+npm run docker-build
 ```
 
 ## run docker image
 ```
-docker run -p3000:3000 --env-file=.env --name nv-web netoviz/web-server
+docker run -p3000:3000 --name nv-web-vue netoviz/web-vue
 ```
-NOTICE: it overwrite `.env` file in image using `--env-file`.
-See: [docker-entrypoint.sh](./docker-entrypoint.sh).
+
