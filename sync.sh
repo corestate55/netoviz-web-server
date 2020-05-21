@@ -9,6 +9,8 @@ cp -r ${ORIG}/pages .
 cp ${ORIG}/server/api/common/alert-util.js ./server/api/common/
 cp ${ORIG}/server/api/grpc/*.proto ./server/api/grpc/
 cp ${ORIG}/server/api/grpc/*_pb.js ./server/api/grpc/
+cp ${ORIG}/server/graph/common/base.js ./server/graph/common/
+cp ${ORIG}/server/graph/common/diff-state.js ./server/graph/common/
 cp ${ORIG}/server/graph/force-simulation/link.js ./server/graph/force-simulation/
 cp ${ORIG}/server/graph/rfc-model/base.js ./server/graph/rfc-model/
 cp ${ORIG}/server/graph/rfc-model/*attr.js ./server/graph/rfc-model/
